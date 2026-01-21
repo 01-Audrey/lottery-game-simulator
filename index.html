@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Spin - Lottery Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial Black', Arial, sans-serif;
+            background: linear-gradient(135deg, #5a0a0a 0%, #8B0000 50%, #5a0a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           POPUP MODAL
+           ============================================ */
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s;
+        }
+
+        .popup-overlay.hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .popup-content {
+            background: #1a1a1a;
+            border: 5px solid #FFD700;
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.4);
+            animation: zoomIn 0.4s;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .popup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .popup-title {
+            font-size: 3em;
+            color: #FFD700;
+            text-shadow: 3px 3px 0px #8B0000, 6px 6px 0px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .popup-subtitle {
+            color: #FFD700;
+            font-size: 1.2em;
+        }
+
+        .popup-inputs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .popup-input {
+            width: 100%;
+            height: 80px;
+            font-size: 2.5em;
+            text-align: center;
+            border: 4px solid #FFD700;
+            border-radius: 12px;
+            background: #FFFEF0;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .popup-input:focus {
+            outline: none;
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6), 0 4px 10px rgba(0,0,0,0.3);
+            border-color: #FFA500;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .popup-btn {
+            background: linear-gradient(145deg, #E63946, #C1121F);
+            color: white;
+            border: none;
+            padding: 18px 45px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(230, 57, 70, 0.3);
+            transition: all 0.3s;
+            border: 3px solid #800F2F;
+        }
+
+        .popup-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(230, 57, 70, 0.6), 0 0 30px rgba(230, 57, 70, 0.4);
+        }
+
+        .popup-btn.quick-pick {
+            background: linear-gradient(145deg, #FFD700, #FFA500);
+            color: #000;
+            border-color: #CC8800;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .popup-btn.quick-pick:hover {
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        /* ============================================
+           SLOT MACHINE
+           ============================================ */
+
+        .slot-machine {
+            background: #1a1a1a;
+            border-radius: 25px;
+            padding: 25px 35px 35px 35px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.3);
+            max-width: 1100px;
+            width: 100%;
+            border: 5px solid #FFD700;
+            position: relative;
+        }
+
+        /* Top Banner - Black with gold text */
+        .top-banner {
+            background: #000;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 0 0 20px 0;
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            position: relative;
+        }
+
+        .game-title {
+            font-size: 2.8em;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 2px 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 5px;
+            font-weight: bold;
+        }
+
+        .game-subtitle {
+            color: #FFF;
+            font-size: 1em;
+            margin-top: 10px;
+            font-weight: normal;
+            opacity: 0.9;
+        }
+
+        /* Selected Numbers Display - More compact */
+        .selected-display {
+            background: #000;
+            color: #00FF00;
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 4px solid #FFD700;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .selected-text {
+            font-size: 1.5em;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+
+        /* Slot Area */
+        .slot-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        /* Reels Container - Dark with gold border */
+        .reels-container {
+            display: flex;
+            gap: 10px;
+            background: #0a0a0a;
+            padding: 35px 30px;
+            border-radius: 20px;
+            border: 4px solid #FFD700;
+            box-shadow: inset 0 8px 25px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 215, 0, 0.2);
+            position: relative;
+        }
+
+        /* Bulb lights around reels - Complete border like the image */
+        .bulb-lights-top,
+        .bulb-lights-bottom,
+        .bulb-lights-left,
+        .bulb-lights-right {
+            position: absolute;
+            display: flex;
+        }
+
+        .bulb-lights-top {
+            top: 8px;
+            left: 25px;
+            right: 25px;
+            justify-content: space-around;
+        }
+
+        .bulb-lights-bottom {
+            bottom: 8px;
+            left: 25px;
+            right: 25px;
+            justify-content: space-around;
+        }
+
+        .bulb-lights-left {
+            left: 8px;
+            top: 45px;
+            bottom: 45px;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .bulb-lights-right {
+            right: 8px;
+            top: 45px;
+            bottom: 45px;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .bulb {
+            width: 12px;
+            height: 12px;
+            background: #FFD700;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #FFD700, 0 0 25px #FFD700;
+            animation: blink 1.5s infinite;
+            border: 2px solid #8B4513;
+        }
+
+        .bulb:nth-child(2n) {
+            animation-delay: 0.75s;
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 15px #FFD700, 0 0 25px #FFD700;
+                background: #FFD700;
+            }
+            50% {
+                opacity: 0.4;
+                box-shadow: 0 0 5px #8B8B00;
+                background: #8B8B00;
+            }
+        }
+
+        /* Individual Reel - White/cream like the input boxes */
+        .reel {
+            width: 75px;
+            height: 115px;
+            background: #FFFEF0;
+            border: 4px solid #FFD700;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 
+                0 4px 15px rgba(0,0,0,0.5),
+                inset 0 2px 5px rgba(255,255,255,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reel-number {
+            position: relative;
+            z-index: 2;
+        }
+
+        .reel.spinning .reel-number {
+            animation: spin 0.1s linear infinite;
+            filter: blur(5px);
+        }
+
+        .reel.stopping .reel-number {
+            animation: bounce 0.5s ease-out;
+            filter: blur(0);
+        }
+
+        @keyframes spin {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Lever - Matching the reference image style */
+        .lever-container {
+            position: relative;
+            width: 65px;
+            height: 180px;
+        }
+
+        .lever {
+            position: absolute;
+            right: 0;
+            top: 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .lever-handle {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle at 35% 35%, #E63946, #C1121F, #800F2F);
+            border-radius: 50%;
+            border: 4px solid #FFD700;
+            box-shadow: 
+                0 6px 20px rgba(0,0,0,0.7), 
+                0 0 20px rgba(255, 215, 0, 0.3),
+                inset -3px -3px 8px rgba(0,0,0,0.5),
+                inset 3px 3px 8px rgba(255,100,100,0.3);
+            margin: 0 auto;
+        }
+
+        .lever-stick {
+            width: 20px;
+            height: 140px;
+            background: linear-gradient(to right, #D4AF37, #C0C0C0, #999);
+            margin: 0 auto;
+            border-radius: 10px;
+            box-shadow: 
+                inset 3px 0 8px rgba(0,0,0,0.4),
+                inset -2px 0 5px rgba(255,215,0,0.2);
+            border: 2px solid #8B8B00;
+        }
+
+        .lever:hover .lever-handle {
+            transform: scale(1.08);
+            box-shadow: 
+                0 8px 25px rgba(230, 57, 70, 0.8),
+                0 0 30px rgba(255, 215, 0, 0.5),
+                inset -3px -3px 8px rgba(0,0,0,0.5),
+                inset 3px 3px 8px rgba(255,100,100,0.3);
+        }
+
+        .lever.pulled {
+            animation: pullLever 0.8s ease-out;
+        }
+
+        @keyframes pullLever {
+            0% { transform: rotate(0deg); transform-origin: top center; }
+            50% { transform: rotate(25deg); transform-origin: top center; }
+            100% { transform: rotate(0deg); transform-origin: top center; }
+        }
+
+        /* Results Section */
+        .results-section {
+            background: #0a0a0a;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .prize-display {
+            text-align: center;
+        }
+
+        .matches-count {
+            color: #FFD700;
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .prize-amount {
+            color: #32CD32;
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        .prize-tier {
+            color: #FFD700;
+            font-size: 1.5em;
+            background: rgba(139, 0, 0, 0.8);
+            padding: 12px 25px;
+            border-radius: 10px;
+            display: inline-block;
+            border: 2px solid #FFD700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .play-again-btn {
+            background: linear-gradient(145deg, #E63946, #C1121F);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(230, 57, 70, 0.3);
+            transition: all 0.3s;
+            border: 3px solid #800F2F;
+        }
+
+        .play-again-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(230, 57, 70, 0.6), 0 0 30px rgba(230, 57, 70, 0.4);
+        }
+
+        .change-numbers-btn {
+            background: linear-gradient(145deg, #FFD700, #FFA500);
+            color: #000;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
+            transition: all 0.3s;
+            border: 3px solid #CC8800;
+            margin-left: 15px;
+        }
+
+        .change-numbers-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .instructions {
+            color: #FFD700;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1em;
+            opacity: 0.9;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Gold Confetti Animation */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            animation: fall 3s linear forwards;
+        }
+
+        .confetti.square {
+            border-radius: 0;
+        }
+
+        .confetti.circle {
+            border-radius: 50%;
+        }
+
+        .confetti.triangle {
+            width: 0;
+            height: 0;
+            background: transparent;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 10px solid #FFD700;
+        }
+
+        .confetti.gold {
+            background: #FFD700;
+        }
+
+        .confetti.gold-dark {
+            background: #FFA500;
+        }
+
+        .confetti.gold-light {
+            background: #FFED4E;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Big Win Overlay */
+        .big-win-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s;
+        }
+
+        .big-win-overlay.show {
+            display: flex;
+        }
+
+        .big-win-content {
+            text-align: center;
+            animation: zoomIn 0.5s;
+        }
+
+        .big-win-text {
+            font-size: 7em;
+            color: #FFD700;
+            text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700, 5px 5px 10px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            animation: glow 1s infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700, 5px 5px 10px rgba(0,0,0,0.5);
+            }
+            to {
+                text-shadow: 0 0 40px #FFD700, 0 0 80px #FFD700, 5px 5px 10px rgba(0,0,0,0.5);
+            }
+        }
+
+        /* Responsive Design - Updated for horizontal layout */
+        @media (max-width: 1024px) {
+            .reel {
+                width: 65px;
+                height: 100px;
+                font-size: 2.5em;
+            }
+
+            .reels-container {
+                gap: 8px;
+                padding: 30px 20px;
+            }
+
+            .game-title {
+                font-size: 2.3em;
+            }
+
+            .selected-text {
+                font-size: 1.3em;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .slot-machine {
+                padding: 20px 25px 25px 25px;
+                border-width: 6px;
+            }
+
+            .reel {
+                width: 52px;
+                height: 85px;
+                font-size: 2em;
+                border-width: 3px;
+            }
+
+            .reels-container {
+                gap: 6px;
+                padding: 25px 15px;
+                border-width: 5px;
+            }
+
+            .lever-container {
+                width: 50px;
+                height: 140px;
+            }
+
+            .lever-handle {
+                width: 45px;
+                height: 45px;
+                border-width: 3px;
+            }
+
+            .lever-stick {
+                width: 16px;
+                height: 100px;
+            }
+
+            .game-title {
+                font-size: 1.8em;
+                letter-spacing: 3px;
+            }
+
+            .selected-text {
+                font-size: 1.1em;
+            }
+
+            .top-banner {
+                padding: 12px 15px;
+                margin: -20px -25px 12px -25px;
+            }
+
+            .big-win-text {
+                font-size: 3.5em;
+            }
+
+            .popup-inputs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .popup-input {
+                height: 70px;
+                font-size: 2em;
+            }
+
+            .bulb {
+                width: 9px;
+                height: 9px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .reel {
+                width: 45px;
+                height: 75px;
+                font-size: 1.7em;
+            }
+
+            .reels-container {
+                gap: 5px;
+                padding: 20px 12px;
+            }
+
+            .slot-area {
+                gap: 10px;
+            }
+
+            .game-title {
+                font-size: 1.5em;
+            }
+
+            .selected-text {
+                font-size: 0.95em;
+            }
+
+            .lever-container {
+                width: 40px;
+                height: 120px;
+            }
+
+            .lever-handle {
+                width: 38px;
+                height: 38px;
+            }
+
+            .lever-stick {
+                width: 14px;
+                height: 85px;
+            }
+
+            .bulb {
+                width: 7px;
+                height: 7px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Popup Modal for Number Input -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup-content">
+            <div class="popup-header">
+                <div class="popup-title">🎰 LUCKY SPIN 🎰</div>
+                <div class="popup-subtitle">Enter Your Lucky Numbers (1-49)</div>
+            </div>
+            <div class="popup-inputs">
+                <input type="number" class="popup-input" min="1" max="49" placeholder="?" maxlength="2">
+                <input type="number" class="popup-input" min="1" max="49" placeholder="?" maxlength="2">
+                <input type="number" class="popup-input" min="1" max="49" placeholder="?" maxlength="2">
+                <input type="number" class="popup-input" min="1" max="49" placeholder="?" maxlength="2">
+                <input type="number" class="popup-input" min="1" max="49" placeholder="?" maxlength="2">
+                <input type="number" class="popup-input" min="1" max="49" placeholder="?" maxlength="2">
+            </div>
+            <div class="popup-buttons">
+                <button class="popup-btn quick-pick" onclick="quickPickPopup()">🎲 QUICK PICK</button>
+                <button class="popup-btn" onclick="startGame()">✨ LET'S SPIN!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Slot Machine -->
+    <div class="slot-machine">
+        <!-- Top Banner -->
+        <div class="top-banner">
+            <div class="game-title">🎰 LUCKY SPIN 🎰</div>
+            <div class="game-subtitle">Pick 6 numbers from 1-49 and try your luck!</div>
+        </div>
+
+        <!-- Selected Numbers Display -->
+        <div class="selected-display">
+            <div class="selected-text" id="selectedDisplay">Select your numbers to begin!</div>
+        </div>
+
+        <!-- Slot Area with Reels and Lever -->
+        <div class="slot-area">
+            <!-- Reels Container -->
+            <div class="reels-container">
+                <!-- Bulb lights decoration -->
+                <div class="bulb-lights-top">
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                </div>
+                <div class="bulb-lights-bottom">
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                </div>
+                <div class="bulb-lights-left">
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                </div>
+                <div class="bulb-lights-right">
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                    <div class="bulb"></div>
+                </div>
+
+                <!-- 6 Reels -->
+                <div class="reel"><span class="reel-number">?</span></div>
+                <div class="reel"><span class="reel-number">?</span></div>
+                <div class="reel"><span class="reel-number">?</span></div>
+                <div class="reel"><span class="reel-number">?</span></div>
+                <div class="reel"><span class="reel-number">?</span></div>
+                <div class="reel"><span class="reel-number">?</span></div>
+            </div>
+
+            <!-- Lever -->
+            <div class="lever-container">
+                <div class="lever" onclick="pullLever()">
+                    <div class="lever-handle"></div>
+                    <div class="lever-stick"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            🎰 Pull the lever to spin and win! 🎰
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="prize-display">
+                <div class="matches-count" id="matchesCount">Matches: 0</div>
+                <div class="prize-amount" id="prizeAmount">$0</div>
+                <div class="prize-tier" id="prizeTier"></div>
+                <div>
+                    <button class="play-again-btn" onclick="playAgain()">🎮 PLAY AGAIN</button>
+                    <button class="change-numbers-btn" onclick="changeNumbers()">🔢 CHANGE NUMBERS</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Big Win Overlay -->
+    <div class="big-win-overlay" id="bigWinOverlay">
+        <div class="big-win-content">
+            <div class="big-win-text">💰 BIG WIN! 💰</div>
+            <div class="prize-amount" id="bigWinAmount" style="font-size: 4em;"></div>
+        </div>
+    </div>
+
+    <!-- Confetti Container -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <script>
+        let userNumbers = [];
+        let winningNumbers = [];
+        let isSpinning = false;
+
+        const prizes = {
+            6: { amount: 1000000, tier: "🏆 JACKPOT! 🏆", isBigWin: true },
+            5: { amount: 50000, tier: "🥈 2nd Prize!", isBigWin: true },
+            4: { amount: 5000, tier: "🥉 3rd Prize!", isBigWin: false },
+            3: { amount: 500, tier: "🎁 4th Prize!", isBigWin: false }
+        };
+
+        // Quick Pick in Popup
+        function quickPickPopup() {
+            const inputs = document.querySelectorAll('.popup-input');
+            const numbers = [];
+            
+            while (numbers.length < 6) {
+                const num = Math.floor(Math.random() * 49) + 1;
+                if (!numbers.includes(num)) {
+                    numbers.push(num);
+                }
+            }
+
+            numbers.sort((a, b) => a - b);
+            inputs.forEach((input, index) => {
+                input.value = numbers[index];
+                input.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    input.style.transform = 'scale(1)';
+                }, 200);
+            });
+        }
+
+        // Start Game - Close popup and show selected numbers
+        function startGame() {
+            const inputs = document.querySelectorAll('.popup-input');
+            userNumbers = [];
+
+            for (let input of inputs) {
+                const num = parseInt(input.value);
+                if (!num || num < 1 || num > 49) {
+                    alert('⚠️ Please enter valid numbers between 1 and 49!');
+                    return;
+                }
+                if (userNumbers.includes(num)) {
+                    alert('⚠️ Please enter unique numbers!');
+                    return;
+                }
+                userNumbers.push(num);
+            }
+
+            // Close popup
+            document.getElementById('popupOverlay').classList.add('hidden');
+
+            // Display selected numbers
+            document.getElementById('selectedDisplay').textContent = 
+                `Your Numbers: ${userNumbers.join(', ')}`;
+        }
+
+        // Change Numbers - Reopen popup
+        function changeNumbers() {
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('popupOverlay').classList.remove('hidden');
+            
+            // Reset reels
+            const reels = document.querySelectorAll('.reel .reel-number');
+            reels.forEach(reel => reel.textContent = '?');
+        }
+
+        // Pull Lever
+        function pullLever() {
+            if (isSpinning) return;
+            
+            if (userNumbers.length === 0) {
+                alert('⚠️ Please select your numbers first!');
+                document.getElementById('popupOverlay').classList.remove('hidden');
+                return;
+            }
+
+            isSpinning = true;
+            document.getElementById('resultsSection').style.display = 'none';
+
+            // Animate lever
+            const lever = document.querySelector('.lever');
+            lever.classList.add('pulled');
+            setTimeout(() => lever.classList.remove('pulled'), 800);
+
+            // Start spin
+            startSpin();
+
+            // Generate winning numbers
+            winningNumbers = [];
+            while (winningNumbers.length < 6) {
+                const num = Math.floor(Math.random() * 49) + 1;
+                if (!winningNumbers.includes(num)) {
+                    winningNumbers.push(num);
+                }
+            }
+            winningNumbers.sort((a, b) => a - b);
+
+            // Stop reels one by one
+            const reels = document.querySelectorAll('.reel');
+            reels.forEach((reel, index) => {
+                setTimeout(() => {
+                    stopReel(reel, winningNumbers[index]);
+                    if (index === 5) {
+                        setTimeout(() => showResults(), 800);
+                    }
+                }, 1000 + (index * 400));
+            });
+        }
+
+        // Start spinning
+        function startSpin() {
+            const reels = document.querySelectorAll('.reel');
+            reels.forEach(reel => {
+                reel.classList.add('spinning');
+                const reelNumber = reel.querySelector('.reel-number');
+                
+                const spinInterval = setInterval(() => {
+                    reelNumber.textContent = Math.floor(Math.random() * 49) + 1;
+                }, 50);
+                
+                reel.dataset.spinInterval = spinInterval;
+            });
+        }
+
+        // Stop reel
+        function stopReel(reel, number) {
+            clearInterval(reel.dataset.spinInterval);
+            reel.classList.remove('spinning');
+            reel.classList.add('stopping');
+            
+            const reelNumber = reel.querySelector('.reel-number');
+            reelNumber.textContent = number;
+
+            setTimeout(() => reel.classList.remove('stopping'), 500);
+        }
+
+        // Show results
+        function showResults() {
+            isSpinning = false;
+
+            const matches = userNumbers.filter(num => winningNumbers.includes(num));
+            const matchCount = matches.length;
+
+            document.getElementById('matchesCount').textContent = `Matches: ${matchCount}`;
+
+            if (prizes[matchCount]) {
+                const prize = prizes[matchCount];
+                document.getElementById('prizeAmount').textContent = `$${prize.amount.toLocaleString()}`;
+                document.getElementById('prizeTier').textContent = prize.tier;
+
+                // Show gold confetti for any win (3+ matches)
+                setTimeout(() => createGoldConfetti(), 500);
+
+                if (prize.isBigWin) {
+                    setTimeout(() => showBigWin(prize.amount), 1000);
+                }
+            } else {
+                document.getElementById('prizeAmount').textContent = '$0';
+                document.getElementById('prizeTier').textContent = '😢 Better Luck Next Time!';
+            }
+
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        // Create gold confetti
+        function createGoldConfetti() {
+            const container = document.getElementById('confettiContainer');
+            const colors = ['gold', 'gold-dark', 'gold-light'];
+            const shapes = ['square', 'circle', 'triangle'];
+
+            for (let i = 0; i < 150; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = `confetti ${shapes[Math.floor(Math.random() * shapes.length)]} ${colors[Math.floor(Math.random() * colors.length)]}`;
+                    
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    confetti.style.animationDelay = (Math.random() * 0.5) + 's';
+                    
+                    container.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 5000);
+                }, i * 30);
+            }
+        }
+
+        // Big win overlay
+        function showBigWin(amount) {
+            const overlay = document.getElementById('bigWinOverlay');
+            document.getElementById('bigWinAmount').textContent = `$${amount.toLocaleString()}`;
+            overlay.classList.add('show');
+
+            setTimeout(() => {
+                overlay.classList.remove('show');
+            }, 4000);
+        }
+
+        // Play again
+        function playAgain() {
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            const reels = document.querySelectorAll('.reel .reel-number');
+            reels.forEach(reel => reel.textContent = '?');
+            
+            winningNumbers = [];
+        }
+
+        // Setup popup inputs
+        document.querySelectorAll('.popup-input').forEach((input, index) => {
+            input.addEventListener('input', function() {
+                if (this.value.length > 2) {
+                    this.value = this.value.slice(0, 2);
+                }
+                if (parseInt(this.value) > 49) {
+                    this.value = '49';
+                }
+                if (parseInt(this.value) < 1 && this.value !== '') {
+                    this.value = '1';
+                }
+            });
+
+            input.addEventListener('keyup', function(e) {
+                const inputs = document.querySelectorAll('.popup-input');
+                if (this.value.length === 2 || (parseInt(this.value) >= 1 && parseInt(this.value) <= 9 && e.key === 'Enter')) {
+                    if (index < 5) {
+                        inputs[index + 1].focus();
+                    }
+                }
+            });
+        });
+
+        // Auto-focus first input
+        setTimeout(() => {
+            document.querySelector('.popup-input').focus();
+        }, 100);
+    </script>
+</body>
+</html>
