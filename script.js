@@ -58,17 +58,13 @@ function calculatePrize(matches) {
 
     if (matches === 6) {
         return "JACKPOT! You won ₱1,000,000!";
-    } 
-    else if (matches === 5) {
+    } else if (matches === 5) {
         return "Amazing! You won ₱100,000!";
-    } 
-    else if (matches === 4) {
+    } else if (matches === 4) {
         return "Great! You won ₱10,000!";
-    } 
-    else if (matches === 3) {
+    } else if (matches === 3) {
         return "Nice! You won ₱1,000!";
-    } 
-    else {
+    } else {
         return "Better luck next time!";
     }
 }
@@ -148,16 +144,90 @@ function resetGame() {
     document.getElementById("prize-display").textContent = "---";
 
     // Reset prize display style
-    document.getElementById("prize-display").style.color = "black";
-    document.getElementById("prize-display").style.fontWeight = "normal";
+    document.getElementById("prize-display").style.color = "#00cc88";
+    document.getElementById("prize-display").style.fontWeight = "bold";
 
     // Clear error message if any
     document.getElementById("error-message").textContent = "";
 }
 
-/*
-    I am not sure if this will work as intended since we don't have 
-    inputs yet to reset. Will fix once inputs are added.
-*/
+/****************************************************
+ * FUNCTION: initGame()
+ * --------------------------------------------------
+ * Purpose:
+ *   Orchestrates the entire lottery game flow.
+ *   Connects user input, game logic, and display.
+ *
+ * Process:
+ *   - Runs when the page loads
+ *   - Adds event listener to Play button
+ *   - Controls the sequence of function calls
+ *
+ * Returns:
+ *   Nothing
+ ****************************************************/
+function initGame() {
 
-document.getElementById("play-again-btn").addEventListener("click", resetGame);
+    // =============================
+    // Add event listener to Play button
+    // =============================
+    const playButton = document.getElementById("play-btn");
+
+    if (!playButton) {
+        console.warn("Play button not found.");
+        return;
+    }
+
+    playButton.addEventListener("click", function () {
+
+        // =============================
+        // 1. Get player numbers
+        // =============================
+        const playerNums = getPlayerNumbers();
+
+        // =============================
+        // 2. Validate input
+        // =============================
+        if (!playerNums) {
+            // Validation failed inside getPlayerNumbers()
+            return;
+        }
+
+        // =============================
+        // 3. Generate lottery numbers
+        // =============================
+        let lotteryNums = generateLotteryNumbers();
+
+        // =============================
+        // 4 & 5. Sort both arrays
+        // =============================
+        const sortedPlayerNums = sortArray(playerNums);
+        const sortedLotteryNums = sortArray(lotteryNums);
+
+        // =============================
+        // 6. Display numbers
+        // =============================
+        displayNumbers(sortedPlayerNums, sortedLotteryNums);
+
+        // =============================
+        // 7. Find matches
+        // =============================
+        const matches = findMatches(sortedPlayerNums, sortedLotteryNums);
+
+        // =============================
+        // 8. Calculate prize
+        // =============================
+        const prize = calculatePrize(matches);
+
+        // =============================
+        // 9. Display results
+        // =============================
+        displayResults(matches, prize);
+    });
+
+    // Add event listener to Play Again button
+    document.getElementById("play-again-btn").addEventListener("click", resetGame);
+}
+
+
+window.onload = initGame();
